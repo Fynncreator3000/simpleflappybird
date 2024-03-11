@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Flappy Bird</title>
+<style>
+canvas {
+display: block;
+margin: 0 auto;
+background-color: #70c5ce;
+}
+</style>
+</head>
+<body>
+<canvas id="canvas" width="400" height="600"></canvas>
+
+<script>
+const canvas = document.getElementById('canvas');
+const ctx = canvas.getContext('2d');
+
+const bird = {
+x: 50,
+y: canvas.height / 2,
+width: 40,
+height: 30,
+velocity: 0,
+gravity: 0.5,
+jump: -8,
+draw: function() {
+ctx.beginPath();
+ctx.moveTo(this.x, this.y);
+ctx.lineTo(this.x + this.width, this.y - this.height / 2);
+ctx.lineTo(this.x + this.width, this.y + this.height / 2);
+ctx.closePath();
+ctx.fillStyle = '#ff0000';
+ctx.fill();
+},
+flap: function() {
+this.velocity += this.jump;
+},
+update: function() {
+this.velocity += this.gravity;
+this.y += this.velocity;
+if (this.y > canvas.height - this.height / 2) {
+this.y = canvas.height - this.height / 2;
+this.velocity = 0;
+}
+if (this.y < this.height / 2) {
+this.y = this.height / 2;
+this.velocity = 0;
+}
+}
+};
+
+const pipes = {
+position: [],
+gap: 200,
+width: 50,
+draw: function() {
+for (let i = 0; i < this.position.length; i++) {
+const pipe = this.position[i];
+ctx.fillStyle = '#008000';
+ctx.fillRect(pipe.x, 0, this.width, pipe.top);
+ctx.fillRect(pipe.x, pipe.bottom, this.width, canvas.height - pipe.bottom);
+}
+},
+update: function() {
+if (frame % 100 === 0) {
+this.position.push({
+x: canvas.width,
+top: Math.floor(Math.random() * (canvas.height / 2)) + 50,
+});
+}
+for (let i = 0; i < this.position.length; i++) {
+const pipe = this.position[i];
+pipe.x -= 3;
+if (pipe.x + this.width <= 0) {
+this.position.shift();
+}
+if (
+bird.x + bird.width > pipe.x &&
+bird.x < pipe.x + this.width &&
+(bird.y < pipe.top || bird.y + bird.height > pipe.bottom)
+) {
+location.reload(); // Restart the game if the bird hits a pipe
+}
+}
+}
+};
+
+let frame = 0;
+function animate() {
+ctx.clearRect(0, 0, canvas.width, canvas.height);
+bird.draw();
+bird.update();
+pipes.draw();
+pipes.update();
+frame++;
+requestAnimationFrame(animate);
+}
+
+animate();
+
+document.addEventListener('keydown', function(event) {
+if (event.code === 'Space') {
+bird.flap();
+}
+});
+</script>
+</body>
+</html>
